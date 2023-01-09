@@ -90,22 +90,40 @@
   }
 
 
+
+
 </script>
 
 
 
 {#each item.data as e, key}
-      <span
-      id={indexItem+"-"+key}
-      class={e.class}
-      contenteditable="true"
-      bind:innerHTML={e.content}
-      on:keydown={onKeyDownElemento}
-      on:keyup={onKeyUpElemento}
-      ></span>
+        {#if e.type == "link"}
+          <a href={e.href} contenteditable="false" target="blank">
+            <span
+            id={indexItem+"-"+key}
+            class={e.class}
+            contenteditable="true"
+            bind:innerHTML={e.content}
+            on:keydown={onKeyDownElemento}
+            on:keyup={onKeyUpElemento}
+            data-info={JSON.stringify(e)}
+            ></span>
+          </a>
+        {:else}
+          <span
+          id={indexItem+"-"+key}
+          class={e.class}
+          contenteditable="true"
+          bind:innerHTML={e.content}
+          on:keydown={onKeyDownElemento}
+          on:keyup={onKeyUpElemento}
+          data-info={JSON.stringify(e)}
+          ></span>
+        {/if}
 {/each}
 
 <style media="screen">
+
 
   /* DEBUG */
   /* span{

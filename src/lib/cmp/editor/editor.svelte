@@ -7,6 +7,8 @@ import Blockquote from "./blockquote.svelte"
 import Li from "./li.svelte"
 import HeaderText from "./header.svelte"
 
+import {flip} from 'svelte/animate';
+
 export let mictes = [];
 
 if (mictes.length == 0) {
@@ -275,7 +277,6 @@ let indexjg;
 
 let itemFocus;
 	function onkeyUpFocus(e) {
-		console.log(JSON.stringify(mictes));
 		try {
 			let [i,j] = e.target.getAttribute("id").split("-").map(e=>parseInt(e));
 			itemFocus = mictes[i].data[j];
@@ -296,11 +297,59 @@ let users = [
 ]
 
 
+// DRAGABLE
+
+let hovering = false;
+
+  const drop = (event, target) => { 
+				if(event.dataTransfer.files[0] != undefined){
+					alert("uploadFile");
+					let f = event.dataTransfer.files[0];
+					event.dataTransfer.dropEffect = 'move';
+					const newTracklist = mictes;
+					console.log(event.dataTransfer.files[0]);
+					let newItem = {"type":"file","data":[
+						{
+							"class":"",
+							"content": f.name
+						}
+					]};
+					newTracklist.splice(target + 1, 0, newItem);
+					mictes = newTracklist
+					hovering = null
+
+				}
+				if (event.dataTransfer.getData("itemmictes")) {
+					event.dataTransfer.dropEffect = 'move';
+					const start = parseInt(event.dataTransfer.getData("text/plain"));
+					const newTracklist = mictes
+
+					if (start < target) {
+						newTracklist.splice(target + 1, 0, newTracklist[start]);
+						newTracklist.splice(start, 1);
+					} else {
+						newTracklist.splice(target, 0, newTracklist[start]);
+						newTracklist.splice(start + 1, 1);
+					}
+					mictes = newTracklist
+					hovering = null
+				}
+  }
+
+  const dragstart = (event, i) => {
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.dropEffect = 'move';
+    const start = i;
+    event.dataTransfer.setData('text/plain', start);
+    event.dataTransfer.setData('itemmictes', "yes");
+  }
+
 </script>
 
 
 <div id="helpBox">
 	{#if itemFocus}
+
 		{#if itemFocus.type == "user"}
 		<select class="form-select" multiple on:change={(e)=>{
 			itemFocus.content = "@"+e.target.value;
@@ -353,9 +402,20 @@ let users = [
 </div>
 
 
+
 <div  contenteditable={boolean} class="editor" on:keydown={onKeyDown} on:keyup={onkeyUpFocus}>
-	{#each  mictes  as elem, indexItem}
-		<div class="item" on:keydown={onKeyDownItem} on:keyup={onKeyUpItem}>
+	{#each  mictes  as elem, indexItem (indexItem)}
+		<div class="item" on:keydown={onKeyDownItem} on:keyup={onKeyUpItem}
+
+			 animate:flip
+       draggable={true}
+       on:dragstart={event => dragstart(event, indexItem)}
+       on:drop|preventDefault={event => drop(event, indexItem)}
+       ondragover="return false"
+       on:dragenter={() => hovering = indexItem}
+       class:is-active={hovering === indexItem}
+
+			 >
 			{#if elem.type == "p" }
 				<Paragraph bind:elem={elem} indexItem={indexItem} />
 			{/if}
@@ -374,8 +434,35 @@ let users = [
 			{#if ["h1","h2","h3","h4","h5","h6"].includes(elem.type) }
 				<HeaderText bind:elem={elem} indexItem={indexItem}/>
 			{/if}
+			<div class="configuration" contenteditable="false">
+				<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-move" viewBox="0 0 16 16">
+				  <path fill-rule="evenodd" d="M7.646.146a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 1.707V5.5a.5.5 0 0 1-1 0V1.707L6.354 2.854a.5.5 0 1 1-.708-.708l2-2zM8 10a.5.5 0 0 1 .5.5v3.793l1.146-1.147a.5.5 0 0 1 .708.708l-2 2a.5.5 0 0 1-.708 0l-2-2a.5.5 0 0 1 .708-.708L7.5 14.293V10.5A.5.5 0 0 1 8 10zM.146 8.354a.5.5 0 0 1 0-.708l2-2a.5.5 0 1 1 .708.708L1.707 7.5H5.5a.5.5 0 0 1 0 1H1.707l1.147 1.146a.5.5 0 0 1-.708.708l-2-2zM10 8a.5.5 0 0 1 .5-.5h3.793l-1.147-1.146a.5.5 0 0 1 .708-.708l2 2a.5.5 0 0 1 0 .708l-2 2a.5.5 0 0 1-.708-.708L14.293 8.5H10.5A.5.5 0 0 1 10 8z"/>
+				</svg>
+			</div>
+			<div class="configurationSetting" contenteditable="false">
+				<div class="" on:click={()=>{
+					alert("Uninplemented")
+				}}>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sliders2-vertical" viewBox="0 0 16 16">
+						<path fill-rule="evenodd" d="M0 10.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 0-1H3V1.5a.5.5 0 0 0-1 0V10H.5a.5.5 0 0 0-.5.5ZM2.5 12a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 1 0v-2a.5.5 0 0 0-.5-.5Zm3-6.5A.5.5 0 0 0 6 6h1.5v8.5a.5.5 0 0 0 1 0V6H10a.5.5 0 0 0 0-1H6a.5.5 0 0 0-.5.5ZM8 1a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 1 0v-2A.5.5 0 0 0 8 1Zm3 9.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 0-1H14V1.5a.5.5 0 0 0-1 0V10h-1.5a.5.5 0 0 0-.5.5Zm2.5 1.5a.5.5 0 0 0-.5.5v2a.5.5 0 0 0 1 0v-2a.5.5 0 0 0-.5-.5Z"/>
+					</svg>
+				</div>
+				<div class="" on:click={()=>{
+					let bool = confirm("Esta seguro de querer eliminar el item");
+					if(bool){
+						mictes.splice(indexItem,1);
+						mictes = mictes;
+					}
+					}}>
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+						<path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+					</svg>
+				</div>
+			</div>
 		</div>
 	{/each}
+
+
 
 </div>
 
@@ -383,6 +470,42 @@ let users = [
 <!-- {JSON.stringify(mictes)} -->
 
 <style media="screen">
+	.item{
+		position: relative;
+	}
+	.item:hover .configuration{
+		display: block;
+		position: absolute;
+		left: 5px;
+		top: 0px;
+		width: 20px;
+		cursor:grab	;
+		padding-left: 2px;
+		color: rgba(63,181,232,1);
+	}
+	.item:hover  .configurationSetting{
+		display: flex;
+		padding: 1px;
+		position: absolute;
+		right: 40px;
+		top:0px;
+		width: 20px;
+		cursor:grab	;
+		padding-left: 2px;
+	}
+	.item  .configurationSetting div{
+		 padding: 0px 5px;
+		 cursor: pointer;
+		 box-shadow: 0 2px #3232320a;
+		 background: white;
+		 margin-right: 3px;
+	}
+	.item .configuration{
+			display: none;
+	}
+	.item .configuration,.item .configurationSetting{
+			display: none;
+	}
 	#helpBox{
 		background: white;
 		border: 1px solid gray;
@@ -400,10 +523,15 @@ let users = [
 	}
 
 	.item{
-		padding: 0px 20px;
+		padding: 0px 60px;
 	}
 	.item:hover{
 		outline: 1px dashed rgba(63,181,232,0.5);
-		outline-offset: 1px;
+		outline-offset: 2px;
+	}
+	.item.is-active {
+		outline: 1px solid rgba(63,181,232,0.5);
+		/* background-color: skyblue; */
+		/* color: #fff; */
 	}
 </style>
