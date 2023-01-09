@@ -127,7 +127,7 @@
 
   /* DEBUG */
   span{
-    border: 1px solid rgba(255, 0, 0, 0.15);
+    border: 0px solid rgba(255, 0, 0, 0.15);
   }
 
   /* STYLE DEFAULT */
