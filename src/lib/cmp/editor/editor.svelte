@@ -298,10 +298,12 @@ let users = [
 
 
 // DRAGABLE
+console.log("HELLO");
 
 let hovering = false;
 
-  const drop = (event, target) => { 
+  const drop = (event, target) => {
+		console.log("HELLO");
 				if(event.dataTransfer.files[0] != undefined){
 					alert("uploadFile");
 					let f = event.dataTransfer.files[0];
